@@ -23,7 +23,7 @@ func (r *MySQLRepository) Save(robotStatus domain.RobotStatus) error {
 }
 
 func (r *MySQLRepository) GetAll() ([]domain.RobotStatus, error) {
-	query := "SELECT idEstado, idRobot, status FROM estado_robot"
+	query := "SELECT  idRobot, status FROM estado_robot"
 	rows, err := r.db.Query(query)
 	if err != nil {
 		return nil, err
@@ -33,7 +33,7 @@ func (r *MySQLRepository) GetAll() ([]domain.RobotStatus, error) {
 	var robotStatus []domain.RobotStatus
 	for rows.Next() {
 		var rs domain.RobotStatus
-		if err := rows.Scan(&rs.IdEstado, &rs.IdRobot, &rs.Status); err != nil {
+		if err := rows.Scan(&rs.IdRobot, &rs.Status); err != nil {
 			return nil, err
 		}
 		robotStatus = append(robotStatus, rs)
@@ -45,7 +45,7 @@ func (r *MySQLRepository) GetAll() ([]domain.RobotStatus, error) {
 }
 
 func (r *MySQLRepository) GetById(idEstado int) ([]domain.RobotStatus, error) {
-	query := "SELECT idEstado, idRobot, status FROM estado_robot WHERE idEstado=?"
+	query := "SELECT idRobot, status FROM estado_robot WHERE idEstado=?"
 	rows, err := r.db.Query(query, idEstado)
 	if err != nil {
 		return nil, err
@@ -55,7 +55,7 @@ func (r *MySQLRepository) GetById(idEstado int) ([]domain.RobotStatus, error) {
 	var robotStatus []domain.RobotStatus
 	for rows.Next() {
 		var rs domain.RobotStatus
-		if err := rows.Scan(&rs.IdEstado, &rs.IdRobot, &rs.Status); err != nil {
+		if err := rows.Scan( &rs.IdRobot, &rs.Status); err != nil {
 			return nil, err
 		}
 		robotStatus = append(robotStatus, rs)
@@ -73,7 +73,7 @@ func (r *MySQLRepository) Delete(idEstado int) error {
 		return err
 	}
 	return nil
-}
+} 
 
 func (r *MySQLRepository) Update(idEstado int, RS domain.RobotStatus) error {
 	query := "UPDATE estado_robot SET status=? WHERE idEstado=?"

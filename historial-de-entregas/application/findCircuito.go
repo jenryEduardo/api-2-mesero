@@ -10,6 +10,6 @@ func NewFindIdCircuito(repo domain.IHistorial) *FindIdCircuito {
 	return &FindIdCircuito{repo:repo}
 }
 
-func (c *FindIdCircuito) Run(idPedido int) (int,error) {
+func (c *FindIdCircuito) Run(idPedido int) (string,error) {
 	return c.repo.FindIdCircuito(idPedido)
 }

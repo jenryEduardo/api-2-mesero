@@ -43,7 +43,6 @@ func (ctrl *UpdateRSCtrl) Run(c *gin.Context) {
 			"data": gin.H{
 				"type": "Estado del robot",
 				"attributes": gin.H{
-					"idEstado": rs.IdEstado,
 					"idRobot": rs.IdRobot,
 					"Estado del robot": rs.Status,
 				},

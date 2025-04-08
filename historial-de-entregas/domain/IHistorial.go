@@ -6,5 +6,5 @@ type IHistorial interface {
 	GetById(idHistorial int)([]Historial,error)
 	Update(idHistorial int, historial Historial) error
 	Delete(idHistorial int) error 
-	FindIdCircuito(idPedido int) (int,error)
+	FindIdCircuito(idPedido int) (string,error)
 }

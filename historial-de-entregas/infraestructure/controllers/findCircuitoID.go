@@ -1,15 +1,18 @@
 package controllers
 
 import (
-	"fmt"
-	"log"
+	"bytes"
+	"encoding/json"
 	"net/http"
 	"strconv"
 
-	"github.com/eclipse/paho.mqtt.golang"
 	"github.com/gin-gonic/gin"
 	"second/historial-de-entregas/application"
 )
+
+type ColorPayload struct {
+	Value string `json:"color"`
+}
 
 type FindIdCircuitoCtrl struct {
 	uc *application.FindIdCircuito
@@ -19,36 +22,9 @@ func NewFindIdCircuitoCtrl(uc *application.FindIdCircuito) *FindIdCircuitoCtrl {
 	return &FindIdCircuitoCtrl{uc: uc}
 }
 
-// Configura el cliente MQTT
-func newMQTTClient() mqtt.Client {
-	opts := mqtt.NewClientOptions()
-	opts.AddBroker("tcp://localhost:1883") // Dirección del broker MQTT (ajústalo si es necesario)
-	opts.SetClientID("go-publisher")
-	opts.SetUsername("user") // Si el broker requiere autenticación
-	opts.SetPassword("password") // Si el broker requiere autenticación
-
-	client := mqtt.NewClient(opts)
-	if token := client.Connect(); token.Wait() && token.Error() != nil {
-		log.Fatalf("Error al conectar al broker MQTT: %v", token.Error())
-	}
-	return client
-}
-
-// Función para publicar el idCircuito en un tópico MQTT
-func publishToMQTT(client mqtt.Client, topic string, message string) {
-	token := client.Publish(topic, 0, false, message)
-	token.Wait()
-	log.Printf("Mensaje enviado al tópico %s: %s", topic, message)
-}
-
-// El controlador que maneja la solicitud GET y publica en MQTT
 func (ctrl *FindIdCircuitoCtrl) Run(c *gin.Context) {
 	// Obtener el parámetro idPedido de la URL (por ejemplo: /circuito?idPedido=123)
-	idPedidoStr := c.DefaultQuery("idPedido", "")
-	if idPedidoStr == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "idPedido es obligatorio"})
-		return
-	}
+	idPedidoStr := c.Param("idPedido")
 
 	// Convertir el idPedido a entero
 	idPedido, err := strconv.Atoi(idPedidoStr)
@@ -56,27 +32,39 @@ func (ctrl *FindIdCircuitoCtrl) Run(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "idPedido debe ser un número válido"})
 		return
 	}
+// Suponiendo que ctrl.uc.Run(idPedido) retorna un string con el color
+colorValue, err := ctrl.uc.Run(idPedido)
+if err != nil {
+	c.JSON(http.StatusInternalServerError, gin.H{"error": "Error al obtener color"})
+	return
+}
 
-	// Llamar al caso de uso para obtener el idCircuito
-	idCircuito, err := ctrl.uc.Run(idPedido)
+// Crear el objeto que cumple con el JSON esperado por el receptor
+	payload := ColorPayload{Value: colorValue}
+
+	jsonPayload, err := json.Marshal(payload)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error al obtener idCircuito"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error al codificar JSON"})
 		return
 	}
 
-	// Crear un cliente MQTT
-	client := newMQTTClient()
-	defer client.Disconnect(250)
+	// Hacer la solicitud POST a la URL externa
+	resp, err := http.Post("http://13.219.94.246:8088/enviar-color", "application/json", bytes.NewBuffer(jsonPayload))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error al enviar datos a servidor remoto"})
+		return
+	}
+	defer resp.Body.Close()
 
-	// Publicar el idCircuito en un tópico MQTT
-	topic := "esp32/circuito" // El tópico que el ESP32 está escuchando
-	message := fmt.Sprintf("idCircuito: %d", idCircuito)
+	if resp.StatusCode != http.StatusOK {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "El servidor remoto respondió con error"})
+		return
+	}
 
-	publishToMQTT(client, topic, message)
-
-	// Devolver el idCircuito como respuesta
 	c.JSON(http.StatusOK, gin.H{
-		"idPedido":   idPedido,
-		"idCircuito": idCircuito,
+		"idPedido": idPedido,
+		"color":    colorValue,
+		"status":   "Enviado correctamente a /enviar-color",
 	})
+
 }

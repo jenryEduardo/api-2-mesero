@@ -18,7 +18,7 @@ func NewSaveRSCtrl(uc *application.SaveRS) *SaveRSCtrl {
 
 func (ctrl *SaveRSCtrl) Run(c *gin.Context) {
 	var rs domain.RobotStatus
-
+	
 	if err := c.ShouldBindJSON(&rs); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return 
@@ -33,7 +33,6 @@ func (ctrl *SaveRSCtrl) Run(c *gin.Context) {
 			"status": true,
 			"data": gin.H{
 				"type": "robot-status",
-				"idEstado": rs.IdEstado,
 				"attributes": gin.H{
 					"idRobot": rs.IdRobot,
 					"estado": rs.Status,

@@ -93,22 +93,22 @@ func (r *MySQLRepository) Delete(idHistorial int) error{
 	return nil
 }
 
-func (r *MySQLRepository) FindIdCircuito(idPedido int) (int, error) {
+func (r *MySQLRepository) FindIdCircuito(idPedido int) (string, error) {
 	var idMesa int
-	var idCircuito int
+	var idCircuito string
 
 	// Primera consulta: obtener idMesa a partir de idPedido
 	err := r.db.QueryRow("SELECT idMesa FROM pedido WHERE idPedido=?", idPedido).Scan(&idMesa)
 	if err != nil {
 		log.Println("Error al obtener idMesa:", err)
-		return 0, err
+		return "", err
 	}
 
 	// Segunda consulta: obtener idCircuito a partir de idMesa
 	err = r.db.QueryRow("SELECT color FROM circuito WHERE idMesa=?", idMesa).Scan(&idCircuito)
 	if err != nil {
 		log.Println("Error al obtener idCircuito:", err)
-		return 0, err
+		return "", err
 	}
 
 	return idCircuito, nil
