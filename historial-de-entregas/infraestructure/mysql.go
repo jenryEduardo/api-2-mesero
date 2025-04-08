@@ -111,5 +111,6 @@ func (r *MySQLRepository) FindIdCircuito(idPedido int) (string, error) {
 		return "", err
 	}
 
+	
 	return idCircuito, nil
 }

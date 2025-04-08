@@ -11,6 +11,7 @@ import (
 	dependenciesRobot "second/robot/infraestructure/dependencies"
 	routesRobot "second/robot/infraestructure/routes"
 	pedidosRoute "second/pedido/infraestructure/routes"
+	ultrasonico "second/ultrasonico/infra/routes"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
@@ -43,7 +44,7 @@ func main() {
 
 
 	pedidosRoute.SetUpRoutes(router)
-
+	ultrasonico.SetUpRoutes(router)
 	port := ":8081"
 	log.Println("Servidor en el puerto:", port)
 	log.Fatal(router.Run(port))

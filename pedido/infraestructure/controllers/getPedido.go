@@ -32,7 +32,7 @@ func GetIdPedido(g *gin.Context) {
 	}
 
 	// Construir la URL
-	url := fmt.Sprintf("http://54.81.41.160:3010/enviarPedido/")
+	url := fmt.Sprintf("http://54.81.41.160:3010/enviarPedido")
 
 	// Crear la solicitud HTTP POST
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(body))
